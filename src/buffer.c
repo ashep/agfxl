@@ -26,8 +26,8 @@ agfxl_buf_t *agfxl_make_buf(uint16_t width, uint16_t height, agfxl_c_mode_t c_mo
     buf->width = width;
     buf->height = height;
     buf->c_mode = c_mode;
-    buf->content = calloc(height, sizeof(buf->content));  // pointers to rows
 
+    buf->content = calloc(height, sizeof(buf->content));  // pointers to rows
     if (!buf->content) {
         free(buf);
         return NULL;
@@ -74,6 +74,9 @@ void agfxl_free_buf(agfxl_buf_t *buf) {
 
     // Pointers to rows
     free(buf->content);
+
+    // Pointer to structure
+    free(buf);
 }
 
 agfxl_buf_array_t *agfxl_make_buf_array(uint8_t length, uint16_t width, uint16_t height, agfxl_c_mode_t c_mode) {
@@ -186,13 +189,11 @@ uint32_t agfxl_get_px(const agfxl_buf_t *buf, int16_t x, int16_t y) {
     return 0x0;
 }
 
-agfxl_err_t agfxl_merge(agfxl_buf_t *dst, const agfxl_buf_t *src,
-                        agfxl_point_t dst_pos, agfxl_point_t src_pos) {
+agfxl_err_t agfxl_merge(agfxl_buf_t *dst, const agfxl_buf_t *src, agfxl_point_t dst_pos, agfxl_point_t src_pos) {
     if (src_pos.x >= src->width || src_pos.y >= src->height || dst_pos.x >= dst->width || dst_pos.y >= dst->height) {
         return AGFXL_BAD_ARG;
     }
 
-    agfxl_err_t err;
     int16_t dst_x = dst_pos.x;
     for (int16_t src_x = src_pos.x; src_x < src->width && dst_x < dst->width; src_x++, dst_x++) {
         int16_t dst_y = dst_pos.y;
@@ -205,7 +206,6 @@ agfxl_err_t agfxl_merge(agfxl_buf_t *dst, const agfxl_buf_t *src,
 }
 
 agfxl_buf_array_t *agfxl_split_buf(const agfxl_buf_t *src, uint8_t num_x, uint8_t num_y) {
-    agfxl_err_t err;
     uint16_t dst_width = src->width / num_x;
     uint16_t dst_height = src->height / num_y;
 
@@ -218,8 +218,8 @@ agfxl_buf_array_t *agfxl_split_buf(const agfxl_buf_t *src, uint8_t num_x, uint8_
     for (uint8_t n_y = 0; n_y < num_y; n_y++) {
         for (uint8_t n_x = 0; n_x < num_x; n_x++) {
             agfxl_point_t src_pos = {n_x * dst_width, n_y * dst_height};
-            err = agfxl_merge(dst->buffers[i], src, (agfxl_point_t){0, 0}, src_pos);
-            if (err) {
+            if (agfxl_merge(dst->buffers[i], src, (agfxl_point_t){0, 0}, src_pos) != AGFXL_OK) {
+                agfxl_free_buf_array(dst);
                 return NULL;
             }
             i++;

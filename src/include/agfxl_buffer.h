@@ -114,8 +114,7 @@ uint32_t agfxl_get_px(const agfxl_buf_t *buf, int16_t x, int16_t y);
  * @param dst_pos Coordinates on the target buffer
  * @param src_pos Coordinates on the source buffer
  */
-agfxl_err_t agfxl_merge(agfxl_buf_t *dst, const agfxl_buf_t *src,
-                        agfxl_point_t dst_pos, agfxl_point_t src_pos);
+agfxl_err_t agfxl_merge(agfxl_buf_t *dst, const agfxl_buf_t *src, agfxl_point_t dst_pos, agfxl_point_t src_pos);
 
 /**
  * @brief Split a buffer
